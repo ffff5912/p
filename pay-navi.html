@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>ペイ得ナビ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1A73E8;
+    --blue-light: #E8F0FE;
+    --blue-dark: #1557B0;
+    --green: #34A853;
+    --green-light: #E6F4EA;
+    --red: #EA4335;
+    --red-light: #FCE8E6;
+    --yellow: #FBBC05;
+    --yellow-light: #FEF7E0;
+    --orange: #FA7B17;
+    --surface: #FFFFFF;
+    --surface-dim: #F8F9FA;
+    --surface-container: #F1F3F4;
+    --outline: #DADCE0;
+    --outline-light: #E8EAED;
+    --text-primary: #202124;
+    --text-secondary: #5F6368;
+    --text-tertiary: #9AA0A6;
+    --shadow-1: 0 1px 2px rgba(60,64,67,0.1), 0 1px 3px rgba(60,64,67,0.08);
+    --shadow-2: 0 1px 3px rgba(60,64,67,0.12), 0 4px 8px rgba(60,64,67,0.08);
+    --shadow-3: 0 4px 12px rgba(60,64,67,0.15), 0 8px 24px rgba(60,64,67,0.1);
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    --tab-height: 64px;
+    --header-height: 56px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--surface-dim);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* Header */
+  .header {
+    height: var(--header-height);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--outline-light);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-logo svg { width: 28px; height: 28px; }
+  .header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+  }
+  .header-subtitle {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--tab-height);
+    background: var(--surface);
+    border-top: 1px solid var(--outline-light);
+    display: flex;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+  .tab-item svg { width: 22px; height: 22px; transition: all 0.15s ease; }
+  .tab-item span {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    transition: all 0.15s ease;
+  }
+  .tab-item.active svg { color: var(--blue); }
+  .tab-item.active span { color: var(--blue); font-weight: 600; }
+  .tab-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 48px;
+    height: 3px;
+    background: var(--blue);
+    border-radius: 0 0 3px 3px;
+  }
+
+  /* Page Container */
+  .page-container {
+    position: fixed;
+    top: var(--header-height);
+    bottom: var(--tab-height);
+    left: 0; right: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .page { display: none; min-height: 100%; }
+  .page.active { display: block; }
+
+  /* Map Page */
+  #map-container {
+    width: 100%;
+    height: 50%;
+    min-height: 250px;
+    position: relative;
+  }
+  #map { width: 100%; height: 100%; z-index: 1; }
+  .map-overlay-btn {
+    position: absolute;
+    z-index: 500;
+    background: var(--surface);
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .map-overlay-btn:active { transform: scale(0.95); }
+  .locate-btn {
+    bottom: 16px; right: 16px;
+    width: 44px; height: 44px;
+  }
+  .locate-btn svg { width: 20px; height: 20px; color: var(--blue); }
+
+  .map-store-list {
+    padding: 12px 16px 24px;
+  }
+  .map-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+
+  /* Store Card */
+  .store-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .store-card:active { transform: scale(0.985); }
+  .store-card.expanded { box-shadow: var(--shadow-2); }
+  .store-card-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .store-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .store-info { flex: 1; min-width: 0; }
+  .store-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .store-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .store-distance {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'DM Mono', monospace;
+  }
+  .store-category-badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  .best-rate {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .best-rate-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .rate-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .rate-hot { background: var(--red-light); color: var(--red); }
+  .rate-warm { background: var(--yellow-light); color: #E37400; }
+  .rate-normal { background: var(--blue-light); color: var(--blue); }
+  .rate-cool { background: var(--surface-container); color: var(--text-secondary); }
+
+  /* Payment Rows */
+  .payment-list {
+    border-top: 1px solid var(--outline-light);
+    padding: 8px 0 4px;
+  }
+  .payment-list-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 16px 8px;
+    font-family: 'DM Mono', monospace;
+  }
+  .payment-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    gap: 10px;
+    transition: background 0.1s;
+  }
+  .payment-row.best {
+    background: linear-gradient(90deg, rgba(52,168,83,0.06), transparent);
+  }
+  .payment-row.best .payment-name { font-weight: 600; }
+  .payment-rank {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+  }
+  .rank-1 { background: var(--green-light); color: var(--green); }
+  .rank-2 { background: var(--blue-light); color: var(--blue); }
+  .rank-3 { background: var(--yellow-light); color: #E37400; }
+  .rank-other { background: var(--surface-container); color: var(--text-tertiary); }
+  .payment-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    border: 1px solid var(--outline-light);
+  }
+  .payment-details { flex: 1; min-width: 0; }
+  .payment-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .payment-note {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .payment-disabled {
+    opacity: 0.35;
+  }
+  .payment-disabled .payment-name::after {
+    content: '未登録';
+    font-size: 9px;
+    color: var(--text-tertiary);
+    background: var(--surface-container);
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 6px;
+    font-weight: 400;
+  }
+
+  /* Search Page */
+  .search-page { padding: 16px; }
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border-radius: var(--radius-full);
+    padding: 10px 16px;
+    gap: 10px;
+    box-shadow: var(--shadow-1);
+    margin-bottom: 16px;
+  }
+  .search-box svg { width: 18px; height: 18px; color: var(--text-tertiary); flex-shrink: 0; }
+  .search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: transparent;
+  }
+  .search-box input::placeholder { color: var(--text-tertiary); }
+
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+    scrollbar-width: none;
+  }
+  .filter-chips::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    padding: 7px 16px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--outline);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .filter-chip.active {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+  }
+
+  /* Wallet Page */
+  .wallet-page { padding: 16px; }
+  .wallet-section {
+    margin-bottom: 24px;
+  }
+  .wallet-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .wallet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .wallet-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    box-shadow: var(--shadow-1);
+  }
+  .wallet-card:active { transform: scale(0.97); }
+  .wallet-card.selected {
+    border-color: var(--blue);
+    background: var(--blue-light);
+  }
+  .wallet-card-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .wallet-card-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .wallet-card.selected .wallet-card-name { color: var(--blue-dark); font-weight: 600; }
+  .wallet-card-check {
+    margin-left: auto;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--outline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .wallet-card.selected .wallet-card-check {
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+
+  .wallet-count {
+    text-align: center;
+    padding: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+  }
+  .wallet-count strong {
+    color: var(--blue);
+    font-size: 22px;
+    display: block;
+    margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Leaflet Popup */
+  .leaflet-popup-content-wrapper {
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-3) !important;
+    padding: 0 !important;
+  }
+  .leaflet-popup-content {
+    margin: 0 !important;
+    min-width: 200px !important;
+  }
+  .popup-content {
+    padding: 14px 16px;
+  }
+  .popup-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'Noto Sans JP', sans-serif;
+    margin-bottom: 6px;
+  }
+  .popup-best {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .popup-rate {
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  /* Loading */
+  .loading-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    gap: 12px;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--outline-light);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Animations */
+  .fade-up {
+    animation: fadeUp 0.35s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Disclaimer */
+  .disclaimer {
+    margin: 16px 0 24px;
+    padding: 12px 14px;
+    background: var(--surface-container);
+    border-radius: var(--radius);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+  }
+
+  /* Responsive height for map */
+  @media (max-height: 600px) {
+    #map-container { height: 40%; min-height: 180px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="8" fill="#1A73E8"/>
+      <text x="14" y="19" text-anchor="middle" fill="white" font-size="16">¥</text>
+    </svg>
+    <span class="header-title">ペイ得ナビ</span>
+  </div>
+  <span class="header-subtitle" id="locationStatus">取得中...</span>
+</header>
+
+<!-- Pages -->
+<div class="page-container">
+
+  <!-- Map Page -->
+  <div class="page active" id="page-map">
+    <div id="map-container">
+      <div id="map"></div>
+      <button class="map-overlay-btn locate-btn" onclick="locateMe()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-10-10h4m12 0h4"/>
+        </svg>
+      </button>
+    </div>
+    <div class="map-store-list" id="mapStoreList">
+      <div class="map-section-title" id="storeListTitle">周辺の店舗</div>
+      <div id="storeCards"></div>
+    </div>
+  </div>
+
+  <!-- Search Page -->
+  <div class="page" id="page-search">
+    <div class="search-page">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="店舗名で検索..." id="searchInput" oninput="filterStores()">
+      </div>
+      <div class="filter-chips" id="filterChips"></div>
+      <div id="searchResults"></div>
+    </div>
+  </div>
+
+  <!-- Wallet Page -->
+  <div class="page" id="page-wallet">
+    <div class="wallet-page" id="walletContent"></div>
+  </div>
+
+</div>
+
+<!-- Tab Bar -->
+<nav class="tab-bar">
+  <button class="tab-item active" onclick="switchTab('map')" id="tab-map">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span>マップ</span>
+  </button>
+  <button class="tab-item" onclick="switchTab('search')" id="tab-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <span>検索</span>
+  </button>
+  <button class="tab-item" onclick="switchTab('wallet')" id="tab-wallet">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><circle cx="16" cy="14" r="1.5"/></svg>
+    <span>マイカード</span>
+  </button>
+</nav>
+
+<script>
+// ==========================================
+// データベース
+// ==========================================
+const PAYMENT_METHODS = {
+  smbc_nl:       { name: "三井住友NL", fullName: "三井住友カード(NL)", icon: "💳", color: "#00A650", type: "credit", group: "クレジットカード" },
+  smbc_gold_nl:  { name: "三井住友ゴールドNL", fullName: "三井住友ゴールドNL", icon: "💳", color: "#B8860B", type: "credit", group: "クレジットカード" },
+  rakuten_card:  { name: "楽天カード", fullName: "楽天カード", icon: "💳", color: "#BF0000", type: "credit", group: "クレジットカード" },
+  jcb_w:         { name: "JCB CARD W", fullName: "JCB CARD W", icon: "💳", color: "#0055A5", type: "credit", group: "クレジットカード" },
+  au_pay_card:   { name: "au PAYカード", fullName: "au PAYカード", icon: "💳", color: "#FF5722", type: "credit", group: "クレジットカード" },
+  dcard:         { name: "dカード", fullName: "dカード", icon: "💳", color: "#E60012", type: "credit", group: "クレジットカード" },
+  dcard_gold:    { name: "dカード GOLD", fullName: "dカード GOLD", icon: "💳", color: "#C5A55A", type: "credit", group: "クレジットカード" },
+  paypay:        { name: "PayPay", fullName: "PayPay", icon: "📱", color: "#FF0033", type: "qr", group: "コード決済" },
+  rakuten_pay:   { name: "楽天ペイ", fullName: "楽天ペイ", icon: "📱", color: "#BF0000", type: "qr", group: "コード決済" },
+  d_barai:       { name: "d払い", fullName: "d払い", icon: "📱", color: "#E60012", type: "qr", group: "コード決済" },
+  au_pay:        { name: "au PAY", fullName: "au PAY", icon: "📱", color: "#FF5722", type: "qr", group: "コード決済" },
+  line_pay:      { name: "LINE Pay", fullName: "LINE Pay", icon: "📱", color: "#06C755", type: "qr", group: "コード決済" },
+  waon:          { name: "WAON", fullName: "WAON", icon: "🔵", color: "#004098", type: "emoney", group: "電子マネー" },
+  nanaco:        { name: "nanaco", fullName: "nanaco", icon: "🟢", color: "#00A14B", type: "emoney", group: "電子マネー" },
+  id:            { name: "iD", fullName: "iD", icon: "⚡", color: "#C8161D", type: "emoney", group: "電子マネー" },
+  quicpay:       { name: "QUICPay", fullName: "QUICPay", icon: "⚡", color: "#FF6600", type: "emoney", group: "電子マネー" },
+  suica:         { name: "Suica", fullName: "Suica/交通系IC", icon: "🚃", color: "#69B42D", type: "transport", group: "交通系IC" },
+};
+
+const STORE_REWARDS = {
+  "サイゼリヤ": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "d_barai", rate: 0.5, note: "通常還元" },
+  ],
+  "ガスト": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "jcb_w", rate: 1.0, note: "通常還元" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "rakuten_pay", rate: 1.0, note: "楽天カード紐付け時" },
+  ],
+  "マクドナルド": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "dcard", rate: 1.5, note: "特約店1.5%還元" },
+    { method: "dcard_gold", rate: 1.5, note: "特約店1.5%還元" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+  ],
+  "セブンイレブン": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "jcb_w", rate: 2.0, note: "セブン-イレブン特約店" },
+    { method: "d_barai", rate: 1.5, note: "ポイント還元" },
+    { method: "nanaco", rate: 1.0, note: "nanacoポイント" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+  ],
+  "ローソン": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "dcard", rate: 4.0, note: "特約店+Pontaカード提示" },
+    { method: "dcard_gold", rate: 4.0, note: "特約店+Pontaカード提示" },
+    { method: "au_pay", rate: 1.5, note: "Pontaポイント加算" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+  ],
+  "ファミリーマート": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "d_barai", rate: 1.5, note: "ポイント還元" },
+    { method: "rakuten_pay", rate: 1.5, note: "楽天カード紐付け時" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+  ],
+  "すき家": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "d_barai", rate: 0.5, note: "通常還元" },
+  ],
+  "スターバックス": [
+    { method: "jcb_w", rate: 5.5, note: "スタバカードチャージで特約店" },
+    { method: "dcard", rate: 4.0, note: "特約店4%還元" },
+    { method: "dcard_gold", rate: 4.0, note: "特約店4%還元" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "paypay", rate: 0.5, note: "PayPay残高払い" },
+  ],
+  "ドトール": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店で最大7%還元" },
+    { method: "jcb_w", rate: 2.0, note: "特約店" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+  ],
+  "吉野家": [
+    { method: "smbc_nl", rate: 7.0, note: "対象店舗" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象店舗" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "rakuten_pay", rate: 1.0, note: "楽天カード紐付け" },
+    { method: "d_barai", rate: 0.5, note: "通常還元" },
+  ],
+  "松屋": [
+    { method: "smbc_nl", rate: 7.0, note: "対象店舗" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象店舗" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "au_pay", rate: 0.5, note: "通常還元" },
+  ],
+  "イオン": [
+    { method: "waon", rate: 1.5, note: "イオン系列WAON特典" },
+    { method: "au_pay", rate: 1.0, note: "Pontaポイント" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "paypay", rate: 0.5, note: "PayPay残高払い" },
+  ],
+  "ユニクロ": [
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "dcard", rate: 1.0, note: "通常還元" },
+    { method: "au_pay", rate: 0.5, note: "通常還元" },
+  ],
+  "ビックカメラ": [
+    { method: "jcb_w", rate: 2.0, note: "ビックカメラ特約店" },
+    { method: "suica", rate: 1.5, note: "ビックポイント+Suica" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+  ],
+  "モスバーガー": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+  ],
+  "ココス": [
+    { method: "smbc_nl", rate: 7.0, note: "対象のコンビニ・飲食店" },
+    { method: "smbc_gold_nl", rate: 7.0, note: "対象のコンビニ・飲食店" },
+    { method: "rakuten_card", rate: 1.0, note: "通常還元" },
+    { method: "paypay", rate: 1.0, note: "PayPay残高払い" },
+  ],
+};
+
+const DEMO_STORES = [
+  { name: "セブンイレブン 浦安北栄店", distance: 50, category: "コンビニ", lat: 35.6542, lng: 139.9020 },
+  { name: "ローソン 浦安駅前店", distance: 120, category: "コンビニ", lat: 35.6530, lng: 139.8998 },
+  { name: "ファミリーマート 浦安猫実店", distance: 180, category: "コンビニ", lat: 35.6555, lng: 139.9028 },
+  { name: "マクドナルド 浦安店", distance: 200, category: "飲食店", lat: 35.6525, lng: 139.9035 },
+  { name: "すき家 浦安駅前店", distance: 170, category: "飲食店", lat: 35.6538, lng: 139.9005 },
+  { name: "ドトール 浦安駅前店", distance: 150, category: "カフェ", lat: 35.6535, lng: 139.9008 },
+  { name: "吉野家 浦安駅前店", distance: 220, category: "飲食店", lat: 35.6528, lng: 139.9032 },
+  { name: "サイゼリヤ 浦安店", distance: 350, category: "飲食店", lat: 35.6560, lng: 139.9045 },
+  { name: "スターバックス 浦安店", distance: 400, category: "カフェ", lat: 35.6520, lng: 139.9050 },
+  { name: "モスバーガー 浦安店", distance: 320, category: "飲食店", lat: 35.6548, lng: 139.9055 },
+  { name: "松屋 浦安店", distance: 250, category: "飲食店", lat: 35.6540, lng: 139.9015 },
+  { name: "イオン 新浦安店", distance: 1200, category: "ショッピング", lat: 35.6445, lng: 139.9150 },
+  { name: "ユニクロ イオン新浦安店", distance: 1250, category: "ショッピング", lat: 35.6443, lng: 139.9155 },
+  { name: "ココス 浦安店", distance: 800, category: "飲食店", lat: 35.6500, lng: 139.9080 },
+];
+
+// ==========================================
+// State
+// ==========================================
+let map = null;
+let userLocation = null;
+let markers = [];
+let selectedPayments = new Set(Object.keys(PAYMENT_METHODS)); // デフォルトで全選択
+let expandedStoreIdx = null;
+let currentTab = 'map';
+let currentFilter = '全て';
+let searchQuery = '';
+
+// LocalStorageからマイカード設定を読み込み
+try {
+  const saved = localStorage.getItem('payNavi_wallet');
+  if (saved) selectedPayments = new Set(JSON.parse(saved));
+} catch(e) {}
+
+// ==========================================
+// ユーティリティ
+// ==========================================
+function findStoreRewards(storeName) {
+  for (const [key, rewards] of Object.entries(STORE_REWARDS)) {
+    if (storeName.includes(key)) return { storeName: key, rewards };
+  }
+  return null;
+}
+
+function getRateClass(rate) {
+  if (rate >= 5) return 'rate-hot';
+  if (rate >= 3) return 'rate-warm';
+  if (rate >= 1.5) return 'rate-normal';
+  return 'rate-cool';
+}
+
+function getCategoryStyle(cat) {
+  const styles = {
+    "コンビニ": { bg: '#E8F0FE', color: '#1A73E8', icon: '🏪' },
+    "飲食店": { bg: '#FCE8E6', color: '#EA4335', icon: '🍽️' },
+    "カフェ": { bg: '#FEF7E0', color: '#E37400', icon: '☕' },
+    "ショッピング": { bg: '#F3E8FD', color: '#9334E6', icon: '🛍️' },
+  };
+  return styles[cat] || { bg: '#F1F3F4', color: '#5F6368', icon: '📍' };
+}
+
+function formatDistance(m) {
+  return m >= 1000 ? (m/1000).toFixed(1) + 'km' : m + 'm';
+}
+
+function getRankClass(i) {
+  if (i === 0) return 'rank-1';
+  if (i === 1) return 'rank-2';
+  if (i === 2) return 'rank-3';
+  return 'rank-other';
+}
+
+// ==========================================
+// Map
+// ==========================================
+function initMap(lat, lng) {
+  if (map) return;
+  map = L.map('map', {
+    zoomControl: false,
+    attributionControl: true,
+  }).setView([lat, lng], 15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  // User location marker
+  const userIcon = L.divIcon({
+    html: `<div style="width:16px;height:16px;background:#1A73E8;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(26,115,232,0.4);"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    className: '',
+  });
+  L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+
+  // Accuracy circle
+  L.circle([lat, lng], { radius: 50, color: '#1A73E8', fillColor: '#1A73E8', fillOpacity: 0.08, weight: 1, opacity: 0.3 }).addTo(map);
+
+  addStoreMarkers();
+
+  setTimeout(() => map.invalidateSize(), 100);
+}
+
+function addStoreMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  DEMO_STORES.forEach((store, idx) => {
+    const catStyle = getCategoryStyle(store.category);
+    const result = findStoreRewards(store.name);
+    const bestRate = result ? Math.max(...result.rewards.map(r => r.rate)) : 0;
+    const rateColor = bestRate >= 5 ? '#EA4335' : bestRate >= 3 ? '#FA7B17' : bestRate >= 1.5 ? '#1A73E8' : '#9AA0A6';
+
+    const markerIcon = L.divIcon({
+      html: `<div style="
+        background: white;
+        border-radius: 8px;
+        padding: 4px 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        font-weight: 600;
+        color: ${rateColor};
+        border: 1.5px solid ${rateColor}22;
+      ">
+        <span style="font-size:13px">${catStyle.icon}</span>
+        ${bestRate > 0 ? bestRate.toFixed(1) + '%' : ''}
+      </div>`,
+      iconSize: null,
+      iconAnchor: [30, 15],
+      className: '',
+    });
+
+    const marker = L.marker([store.lat, store.lng], { icon: markerIcon })
+      .addTo(map)
+      .on('click', () => {
+        expandedStoreIdx = expandedStoreIdx === idx ? null : idx;
+        renderStoreList('storeCards');
+        const el = document.getElementById(`store-${idx}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+    if (result) {
+      const best = result.rewards.sort((a,b) => b.rate - a.rate)[0];
+      const pm = PAYMENT_METHODS[best.method];
+      marker.bindPopup(`
+        <div class="popup-content">
+          <div class="popup-name">${store.name}</div>
+          <div class="popup-best">
+            最大還元 <span class="popup-rate">${best.rate.toFixed(1)}%</span> — ${pm.name}
+          </div>
+        </div>
+      `, { closeButton: false });
+    }
+
+    markers.push(marker);
+  });
+}
+
+function locateMe() {
+  if (userLocation && map) {
+    map.flyTo([userLocation.lat, userLocation.lng], 16, { duration: 0.8 });
+  } else {
+    getLocation();
+  }
+}
+
+// ==========================================
+// Store Card Rendering
+// ==========================================
+function renderStoreCard(store, idx, container) {
+  const result = findStoreRewards(store.name);
+  const rewards = result ? [...result.rewards].sort((a,b) => b.rate - a.rate) : [];
+  const userRewards = rewards.filter(r => selectedPayments.has(r.method));
+  const bestReward = userRewards[0] || rewards[0];
+  const catStyle = getCategoryStyle(store.category);
+  const isExpanded = expandedStoreIdx === idx;
+
+  let html = `
+    <div class="store-card ${isExpanded ? 'expanded' : ''} fade-up" id="store-${idx}" style="animation-delay: ${idx * 30}ms" onclick="toggleStore(${idx}, '${container}')">
+      <div class="store-card-header">
+        <div class="store-icon" style="background:${catStyle.bg}">${catStyle.icon}</div>
+        <div class="store-info">
+          <div class="store-name">${store.name}</div>
+          <div class="store-meta">
+            <span class="store-distance">📍 ${formatDistance(store.distance)}</span>
+            <span class="store-category-badge" style="background:${catStyle.bg};color:${catStyle.color}">${store.category}</span>
+          </div>
+        </div>
+        ${bestReward ? `
+        <div class="best-rate">
+          <div class="best-rate-label">最大還元</div>
+          <span class="rate-chip ${getRateClass(bestReward.rate)}">${bestReward.rate.toFixed(1)}%</span>
+        </div>` : ''}
+      </div>`;
+
+  if (isExpanded && rewards.length > 0) {
+    html += `<div class="payment-list">
+      <div class="payment-list-title">支払い方法ランキング</div>`;
+
+    // ユーザーが持っているカードを上に、持っていないカードを下に
+    const sortedRewards = [...rewards].sort((a, b) => {
+      const aHas = selectedPayments.has(a.method);
+      const bHas = selectedPayments.has(b.method);
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return b.rate - a.rate;
+    });
+
+    // ユーザーが持っているもので再ソート（rate順）
+    const owned = rewards.filter(r => selectedPayments.has(r.method)).sort((a,b) => b.rate - a.rate);
+    const notOwned = rewards.filter(r => !selectedPayments.has(r.method)).sort((a,b) => b.rate - a.rate);
+    const displayList = [...owned, ...notOwned];
+
+    displayList.forEach((r, i) => {
+      const pm = PAYMENT_METHODS[r.method];
+      if (!pm) return;
+      const hasCard = selectedPayments.has(r.method);
+      const ownedRank = owned.indexOf(r);
+      const rankIdx = hasCard ? ownedRank : -1;
+
+      html += `
+        <div class="payment-row ${rankIdx === 0 ? 'best' : ''} ${!hasCard ? 'payment-disabled' : ''}">
+          <span class="payment-rank ${rankIdx >= 0 ? getRankClass(rankIdx) : 'rank-other'}">${rankIdx >= 0 ? rankIdx + 1 : '-'}</span>
+          <div class="payment-icon" style="background:${pm.color}11;border-color:${pm.color}22">
+            <span>${pm.icon}</span>
+          </div>
+          <div class="payment-details">
+            <div class="payment-name">${pm.name}</div>
+            <div class="payment-note">${r.note}</div>
+          </div>
+          <span class="rate-chip ${getRateClass(r.rate)}">${r.rate.toFixed(1)}%</span>
+        </div>`;
+    });
+    html += '</div>';
+  } else if (isExpanded) {
+    html += `<div class="payment-list" style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px">還元率データ未登録</div>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function renderStoreList(containerId) {
+  const container = document.getElementById(containerId);
+  let stores = [...DEMO_STORES];
+
+  // Apply filters
+  if (currentFilter !== '全て') {
+    stores = stores.filter(s => s.category === currentFilter);
+  }
+  if (searchQuery) {
+    stores = stores.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }
+
+  // Sort by distance
+  stores.sort((a, b) => a.distance - b.distance);
+
+  if (stores.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary);font-size:13px">該当する店舗がありません</div>';
+    return;
+  }
+
+  container.innerHTML = stores.map((s, i) => {
+    const originalIdx = DEMO_STORES.indexOf(s);
+    return renderStoreCard(s, originalIdx, containerId);
+  }).join('');
+}
+
+function toggleStore(idx, container) {
+  expandedStoreIdx = expandedStoreIdx === idx ? null : idx;
+  renderStoreList(container);
+
+  // Highlight marker on map
+  if (map && markers[idx] && expandedStoreIdx === idx) {
+    markers[idx].openPopup();
+    map.flyTo([DEMO_STORES[idx].lat, DEMO_STORES[idx].lng], 16, { duration: 0.5 });
+  }
+}
+
+// ==========================================
+// Search Page
+// ==========================================
+function initSearchPage() {
+  const categories = ['全て', 'コンビニ', '飲食店', 'カフェ', 'ショッピング'];
+  const chipsHtml = categories.map(cat =>
+    `<button class="filter-chip ${currentFilter === cat ? 'active' : ''}" onclick="setFilter('${cat}')">${cat}</button>`
+  ).join('');
+  document.getElementById('filterChips').innerHTML = chipsHtml;
+  renderStoreList('searchResults');
+}
+
+function setFilter(cat) {
+  currentFilter = cat;
+  initSearchPage();
+}
+
+function filterStores() {
+  searchQuery = document.getElementById('searchInput').value;
+  renderStoreList('searchResults');
+}
+
+// ==========================================
+// Wallet Page
+// ==========================================
+function renderWallet() {
+  const groups = {};
+  for (const [key, pm] of Object.entries(PAYMENT_METHODS)) {
+    if (!groups[pm.group]) groups[pm.group] = [];
+    groups[pm.group].push({ key, ...pm });
+  }
+
+  const selectedCount = selectedPayments.size;
+
+  let html = `
+    <div class="wallet-count fade-up">
+      <strong>${selectedCount}</strong>
+      登録済みの決済手段
+    </div>
+  `;
+
+  const groupOrder = ['クレジットカード', 'コード決済', '電子マネー', '交通系IC'];
+  groupOrder.forEach((groupName, gi) => {
+    const items = groups[groupName];
+    if (!items) return;
+    html += `
+      <div class="wallet-section fade-up" style="animation-delay:${(gi+1)*60}ms;margin-top:20px">
+        <div class="wallet-section-title">${groupName}</div>
+        <div class="wallet-grid">
+          ${items.map(pm => `
+            <div class="wallet-card ${selectedPayments.has(pm.key) ? 'selected' : ''}" onclick="togglePayment('${pm.key}')">
+              <div class="wallet-card-icon" style="background:${pm.color}11">${pm.icon}</div>
+              <div class="wallet-card-name">${pm.name}</div>
+              <div class="wallet-card-check">
+                ${selectedPayments.has(pm.key) ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 12l5 5L19 7"/></svg>' : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `<div class="disclaimer">⚠️ 還元率はデモ用のサンプルデータです。実際の還元率はカード会社の公式サイトでご確認ください。キャンペーンや条件により変動する場合があります。</div>`;
+
+  document.getElementById('walletContent').innerHTML = html;
+}
+
+function togglePayment(key) {
+  if (selectedPayments.has(key)) {
+    selectedPayments.delete(key);
+  } else {
+    selectedPayments.add(key);
+  }
+  try {
+    localStorage.setItem('payNavi_wallet', JSON.stringify([...selectedPayments]));
+  } catch(e) {}
+  renderWallet();
+  // Re-render store lists if they exist
+  if (document.getElementById('storeCards').innerHTML) renderStoreList('storeCards');
+  if (document.getElementById('searchResults').innerHTML) renderStoreList('searchResults');
+}
+
+// ==========================================
+// Tab Navigation
+// ==========================================
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById(`page-${tab}`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+
+  if (tab === 'map' && map) {
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+  if (tab === 'search') initSearchPage();
+  if (tab === 'wallet') renderWallet();
+}
+
+// ==========================================
+// Location
+// ==========================================
+function getLocation() {
+  const statusEl = document.getElementById('locationStatus');
+  statusEl.textContent = '取得中...';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        statusEl.textContent = `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        initMap(userLocation.lat, userLocation.lng);
+        renderStoreList('storeCards');
+        document.getElementById('storeListTitle').textContent = `周辺の店舗（${DEMO_STORES.length}件）`;
+      },
+      (err) => {
+        // Fallback to Urayasu
+        useDemoLocation();
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  } else {
+    useDemoLocation();
+  }
+}
+
+function useDemoLocation() {
+  userLocation = { lat: 35.6536, lng: 139.9018 };
+  document.getElementById('locationStatus').textContent = 'デモ: 浦安';
+  initMap(userLocation.lat, userLocation.lng);
+  renderStoreList('storeCards');
+  document.getElementById('storeListTitle').textContent = `周辺の店舗（${DEMO_STORES.length}件）`;
+}
+
+// ==========================================
+// Init
+// ==========================================
+getLocation();
+</script>
+</body>
+</html>
