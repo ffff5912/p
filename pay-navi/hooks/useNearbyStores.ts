@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Store } from "@/lib/types";
 import { fetchNearbyPOIs } from "@/lib/overpass";
 import { convertPOIsToStores } from "@/lib/matching";
-import { DEMO_STORES } from "@/lib/demo-stores";
 
 interface CacheEntry {
   stores: Store[];
@@ -14,7 +13,7 @@ interface CacheEntry {
 }
 
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const CACHE_DISTANCE_THRESHOLD = 200; // meters - reuse cache if user moved less than this
+const CACHE_DISTANCE_THRESHOLD = 200; // meters
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371000;
@@ -63,10 +62,14 @@ export function useNearbyStores(lat: number | null, lng: number | null) {
       };
 
       setStores(converted);
+
+      if (converted.length === 0) {
+        setError("周辺に店舗が見つかりませんでした。範囲を広げて再検索してみてください。");
+      }
     } catch (e) {
-      console.error("Overpass API failed, falling back to demo data:", e);
-      setError("店舗データの取得に失敗しました。デモデータを表示しています。");
-      setStores(DEMO_STORES);
+      console.error("Overpass API failed:", e);
+      setError("店舗データの取得に失敗しました。通信状況を確認してリロードしてください。");
+      setStores([]);
     } finally {
       setLoading(false);
     }

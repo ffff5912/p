@@ -102,7 +102,7 @@ export default function Home() {
 
   return (
     <>
-      <Header status={location?.status || "取得中..."} />
+      <Header status={location ? location.status : "位置情報を許可してください"} />
 
       <div className="fixed top-14 bottom-16 left-0 right-0 overflow-y-auto overflow-x-hidden">
         {/* Map Tab */}
@@ -117,9 +117,16 @@ export default function Home() {
                   onStoreClick={toggleStore}
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center h-[200px] gap-3 text-[#9AA0A6] text-[13px]">
-                  <div className="w-8 h-8 border-[3px] border-[#E8EAED] border-t-[#1A73E8] rounded-full animate-spin" />
-                  位置情報を取得中...
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-[#9AA0A6] text-[13px]">
+                  <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 opacity-50">
+                    <circle cx="24" cy="24" r="20" stroke="#9AA0A6" strokeWidth="2" />
+                    <path d="M24 14v12" stroke="#9AA0A6" strokeWidth="2" strokeLinecap="round" />
+                    <circle cx="24" cy="32" r="1.5" fill="#9AA0A6" />
+                  </svg>
+                  <div className="text-center">
+                    <div className="font-medium mb-1">位置情報が取得できません</div>
+                    <div className="text-[11px]">ブラウザの位置情報を許可してリロードしてください</div>
+                  </div>
                 </div>
               )}
             </div>
