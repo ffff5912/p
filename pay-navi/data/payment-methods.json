@@ -1,0 +1,19 @@
+{
+  "smbc_nl": { "name": "三井住友NL", "fullName": "三井住友カード(NL)", "icon": "💳", "color": "#00A650", "type": "credit", "group": "クレジットカード" },
+  "smbc_gold_nl": { "name": "三井住友ゴールドNL", "fullName": "三井住友ゴールドNL", "icon": "💳", "color": "#B8860B", "type": "credit", "group": "クレジットカード" },
+  "rakuten_card": { "name": "楽天カード", "fullName": "楽天カード", "icon": "💳", "color": "#BF0000", "type": "credit", "group": "クレジットカード" },
+  "jcb_w": { "name": "JCB CARD W", "fullName": "JCB CARD W", "icon": "💳", "color": "#0055A5", "type": "credit", "group": "クレジットカード" },
+  "au_pay_card": { "name": "au PAYカード", "fullName": "au PAYカード", "icon": "💳", "color": "#FF5722", "type": "credit", "group": "クレジットカード" },
+  "dcard": { "name": "dカード", "fullName": "dカード", "icon": "💳", "color": "#E60012", "type": "credit", "group": "クレジットカード" },
+  "dcard_gold": { "name": "dカード GOLD", "fullName": "dカード GOLD", "icon": "💳", "color": "#C5A55A", "type": "credit", "group": "クレジットカード" },
+  "paypay": { "name": "PayPay", "fullName": "PayPay", "icon": "📱", "color": "#FF0033", "type": "qr", "group": "コード決済" },
+  "rakuten_pay": { "name": "楽天ペイ", "fullName": "楽天ペイ", "icon": "📱", "color": "#BF0000", "type": "qr", "group": "コード決済" },
+  "d_barai": { "name": "d払い", "fullName": "d払い", "icon": "📱", "color": "#E60012", "type": "qr", "group": "コード決済" },
+  "au_pay": { "name": "au PAY", "fullName": "au PAY", "icon": "📱", "color": "#FF5722", "type": "qr", "group": "コード決済" },
+  "line_pay": { "name": "LINE Pay", "fullName": "LINE Pay", "icon": "📱", "color": "#06C755", "type": "qr", "group": "コード決済" },
+  "waon": { "name": "WAON", "fullName": "WAON", "icon": "🔵", "color": "#004098", "type": "emoney", "group": "電子マネー" },
+  "nanaco": { "name": "nanaco", "fullName": "nanaco", "icon": "🟢", "color": "#00A14B", "type": "emoney", "group": "電子マネー" },
+  "id": { "name": "iD", "fullName": "iD", "icon": "⚡", "color": "#C8161D", "type": "emoney", "group": "電子マネー" },
+  "quicpay": { "name": "QUICPay", "fullName": "QUICPay", "icon": "⚡", "color": "#FF6600", "type": "emoney", "group": "電子マネー" },
+  "suica": { "name": "Suica", "fullName": "Suica/交通系IC", "icon": "🚃", "color": "#69B42D", "type": "transport", "group": "交通系IC" }
+}

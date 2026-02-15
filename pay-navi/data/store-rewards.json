@@ -1,0 +1,110 @@
+{
+  "サイゼリヤ": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "d_barai", "rate": 0.5, "note": "通常還元" }
+  ],
+  "ガスト": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "jcb_w", "rate": 1.0, "note": "通常還元" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "rakuten_pay", "rate": 1.0, "note": "楽天カード紐付け時" }
+  ],
+  "マクドナルド": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "dcard", "rate": 1.5, "note": "特約店1.5%還元" },
+    { "method": "dcard_gold", "rate": 1.5, "note": "特約店1.5%還元" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" }
+  ],
+  "セブンイレブン": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "jcb_w", "rate": 2.0, "note": "セブン-イレブン特約店" },
+    { "method": "d_barai", "rate": 1.5, "note": "ポイント還元" },
+    { "method": "nanaco", "rate": 1.0, "note": "nanacoポイント" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" }
+  ],
+  "ローソン": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "dcard", "rate": 4.0, "note": "特約店+Pontaカード提示" },
+    { "method": "dcard_gold", "rate": 4.0, "note": "特約店+Pontaカード提示" },
+    { "method": "au_pay", "rate": 1.5, "note": "Pontaポイント加算" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" }
+  ],
+  "ファミリーマート": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "d_barai", "rate": 1.5, "note": "ポイント還元" },
+    { "method": "rakuten_pay", "rate": 1.5, "note": "楽天カード紐付け時" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" }
+  ],
+  "すき家": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "d_barai", "rate": 0.5, "note": "通常還元" }
+  ],
+  "スターバックス": [
+    { "method": "jcb_w", "rate": 5.5, "note": "スタバカードチャージで特約店" },
+    { "method": "dcard", "rate": 4.0, "note": "特約店4%還元" },
+    { "method": "dcard_gold", "rate": 4.0, "note": "特約店4%還元" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "paypay", "rate": 0.5, "note": "PayPay残高払い" }
+  ],
+  "ドトール": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店で最大7%還元" },
+    { "method": "jcb_w", "rate": 2.0, "note": "特約店" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" }
+  ],
+  "吉野家": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象店舗" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象店舗" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "rakuten_pay", "rate": 1.0, "note": "楽天カード紐付け" },
+    { "method": "d_barai", "rate": 0.5, "note": "通常還元" }
+  ],
+  "松屋": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象店舗" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象店舗" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "au_pay", "rate": 0.5, "note": "通常還元" }
+  ],
+  "イオン": [
+    { "method": "waon", "rate": 1.5, "note": "イオン系列WAON特典" },
+    { "method": "au_pay", "rate": 1.0, "note": "Pontaポイント" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "paypay", "rate": 0.5, "note": "PayPay残高払い" }
+  ],
+  "ユニクロ": [
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "dcard", "rate": 1.0, "note": "通常還元" },
+    { "method": "au_pay", "rate": 0.5, "note": "通常還元" }
+  ],
+  "ビックカメラ": [
+    { "method": "jcb_w", "rate": 2.0, "note": "ビックカメラ特約店" },
+    { "method": "suica", "rate": 1.5, "note": "ビックポイント+Suica" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" }
+  ],
+  "モスバーガー": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" }
+  ],
+  "ココス": [
+    { "method": "smbc_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店" },
+    { "method": "smbc_gold_nl", "rate": 7.0, "note": "対象のコンビニ・飲食店" },
+    { "method": "rakuten_card", "rate": 1.0, "note": "通常還元" },
+    { "method": "paypay", "rate": 1.0, "note": "PayPay残高払い" }
+  ]
+}
