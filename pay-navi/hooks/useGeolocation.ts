@@ -9,18 +9,12 @@ interface GeolocationState {
   status: string;
 }
 
-const DEMO_LOCATION = { lat: 35.6536, lng: 139.9018 };
-
 export function useGeolocation() {
   const [location, setLocation] = useState<GeolocationState | null>(null);
 
   const locate = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocation({
-        ...DEMO_LOCATION,
-        isDemo: true,
-        status: "デモ: 浦安",
-      });
+      setLocation(null);
       return;
     }
 
@@ -37,14 +31,11 @@ export function useGeolocation() {
           status: `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`,
         });
       },
-      () => {
-        setLocation({
-          ...DEMO_LOCATION,
-          isDemo: true,
-          status: "デモ: 浦安",
-        });
+      (err) => {
+        console.error("Geolocation error:", err.message);
+        setLocation(null);
       },
-      { timeout: 8000, enableHighAccuracy: true }
+      { timeout: 10000, enableHighAccuracy: true }
     );
   }, []);
 

@@ -1,13 +1,12 @@
 import { StoreReward } from "./types";
-import storeRewardsData from "@/data/store-rewards.json";
+import { matchStoreRewards } from "./matching";
 
 export function findStoreRewards(
   storeName: string
 ): { storeName: string; rewards: StoreReward[] } | null {
-  for (const [key, rewards] of Object.entries(storeRewardsData)) {
-    if (storeName.includes(key)) {
-      return { storeName: key, rewards: rewards as StoreReward[] };
-    }
+  const result = matchStoreRewards(storeName);
+  if (result) {
+    return { storeName: result.key, rewards: result.rewards };
   }
   return null;
 }
